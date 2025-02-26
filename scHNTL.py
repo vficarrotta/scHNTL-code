@@ -10,7 +10,7 @@ import sys
 import time
 import os
 from sklearn import metrics
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA # THIS RIGHT HERE HAS GOT TO CHANGE ## import GLMPCA as glmpca
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from sklearn.metrics.cluster import adjusted_rand_score
