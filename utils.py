@@ -22,7 +22,7 @@ import scipy.sparse as sp
 # 这些行导入了 scikit-learn 机器学习库中的一些模块，
 # 用于进行 t-分布随机邻域嵌入（t-SNE），主成分分析（PCA），K-均值聚类算法，度量和评价方法，以及 SciPy 统计模块中的斯皮尔曼等级相关计算。
 from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA # PCA IS CALLED IN THIS FILE; ADD GLMPCA HERE
 from sklearn.cluster import KMeans
 from sklearn import metrics
 from sklearn.metrics.cluster import adjusted_rand_score
@@ -238,7 +238,7 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
 
     # feature tranformation
     if features.shape[0] > PCA_dim and features.shape[1] > PCA_dim:
-        pca = PCA(n_components = PCA_dim)
+        pca = PCA(n_components = PCA_dim)                                # PCA call change to GLMPCA, adjust downstream auxiliary functions and operations as necessary
         features = pca.fit_transform(features)
     else:
         var = np.var(features, axis=0)
