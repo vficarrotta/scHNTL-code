@@ -22,29 +22,32 @@ import scipy.sparse as sp
 # 这些行导入了 scikit-learn 机器学习库中的一些模块，
 # 用于进行 t-分布随机邻域嵌入（t-SNE），主成分分析（PCA），K-均值聚类算法，度量和评价方法，以及 SciPy 统计模块中的斯皮尔曼等级相关计算。
 from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA # PCA IS CALLED IN THIS FILE; ADD GLMPCA HERE
+# from sklearn.decomposition import PCA # PCA IS CALLED IN THIS FILE; ADD GLMPCA HERE
 from glmpca import glmpca             # glmpca function must be called as glmpca.glmpca
 from sklearn.cluster import KMeans
 from sklearn import metrics
 from sklearn.metrics.cluster import adjusted_rand_score
 from scipy.stats import spearmanr
 
+###################
+# Removed Normalizations
+###################
 # GK = pd.read_csv('D:\\学习\\研究生学习\\论文\\bioinfomatics\\scGAC a graph attentional architecture for clustering\\github\\scGAC改进本地\\data\\Yan\\Kernel_matrix.tsv', sep='\t', header=None).values
 # 这是一个归一化函数，将输入的特征值转化为每行和为100000的比例数据，并应用对数变换，以让特征值更适合后续分析。
-def normalization(features_):
-    features = features_.copy()
-    for i in range(len(features)):
-        features[i] = features[i] / sum(features[i]) * 100000
-    features = np.log2(features + 1)
-    return features
+# def  normalization(features_):
+    # features = features_.copy()
+    # for i in range(len(features)):
+    #     features[i] = features[i] / sum(features[i]) * 100000
+    # features = np.log2(features + 1)
+    # return features
 
 # 这个函数与 `normalization` 类似，但是乘的常数为1000000，针对 NE 的特征归一化。
-def normalization_for_NE(features_):
-    features = features_.copy()
-    for i in range(len(features)):
-        features[i] = features[i] / sum(features[i]) * 1000000
-    features = np.log2(features + 1)
-    return features
+# def  normalization_for_NE(features_):
+    # features = features_.copy()
+    # for i in range(len(features)):
+    #     features[i] = features[i] / sum(features[i]) * 1000000
+    # features = np.log2(features + 1)
+    # return features
 
 # 这个函数实现了 NE 算法的一部分，其中 w 是权重矩阵，N 是网络的大小，eps 是为了防止除以0添加的小量。
 def NE_dn(w, N, eps):
@@ -218,10 +221,10 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     data = pd.read_csv(DATA_PATH, index_col=0, sep='\t')
     cells = data.columns.values
     genes = data.index.values
-    features = data.values.T
+    raw_features = data.values.T # storing raw counts
 
-    # Preprocess features
-    features = normalization(features)
+    # Preprocess features # graph construction normalization
+    features = normalization(raw_features.copy())
 
     # Construct graph
     N = len(cells)
@@ -239,9 +242,10 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
 
     # feature tranformation
     if features.shape[0] > PCA_dim and features.shape[1] > PCA_dim:
-        # pca = PCA(n_components = PCA_dim)                                # PCA call change to GLMPCA, adjust downstream auxiliary functions and operations as necessary
-        pca = glmpca.glmpca(Y=PCA_dim, L=2, fam="nb")
-        features = pca.fit_transform(features)
+        # pca = PCA(n_components = PCA_dim)                                # PCA call change to GLMPCA
+        res = glmpca.glmpca(raw_features.T, PCA_dim, fam="nb", nb_theta=10)        #GLMPCA on raw counts
+        # features = pca.fit_transform(features)
+        features = res["factors"] # extract factors
     else:
         var = np.var(features, axis=0)
         min_var = np.sort(var)[-1 * PCA_dim]
