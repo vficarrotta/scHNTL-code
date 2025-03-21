@@ -134,7 +134,9 @@ def getGraph(dataset_str, features, L, K, method):# 定义函数getGraph，它�
         if os.path.exists(NE_path):
             NE_matrix = pd.read_csv(NE_path).values
         else:
-            features = normalization_for_NE(features)
+            # Remove normaliation
+            # features = normalization_for_NE(features)
+            features = features
             in_matrix = np.corrcoef(features)
             NE_matrix = getNeMatrix(in_matrix)
             pd.DataFrame(NE_matrix).to_csv(NE_path, index=False)
