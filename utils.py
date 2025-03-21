@@ -223,8 +223,11 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     genes = data.index.values
     raw_features = data.values.T # storing raw counts
 
-    # Preprocess features # graph construction normalization
-    features = normalization(raw_features.copy())
+    # Preprocess features & graph construction normalization 
+    # features = normalization(raw_features.copy())
+
+    # Without normalization
+    features = raw_features.copy()
 
     # Construct graph
     N = len(cells)
