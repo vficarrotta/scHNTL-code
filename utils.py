@@ -22,7 +22,7 @@ import scipy.sparse as sp
 # 这些行导入了 scikit-learn 机器学习库中的一些模块，
 # 用于进行 t-分布随机邻域嵌入（t-SNE），主成分分析（PCA），K-均值聚类算法，度量和评价方法，以及 SciPy 统计模块中的斯皮尔曼等级相关计算。
 from sklearn.manifold import TSNE
-# from sklearn.decomposition import PCA # PCA IS CALLED IN THIS FILE; ADD GLMPCA HERE
+# from sklearn.decomposition import PCA 
 from glmpca import glmpca             # glmpca function must be called as glmpca.glmpca
 from sklearn.cluster import KMeans
 from sklearn import metrics
@@ -250,15 +250,14 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     # feature tranformation
     if features.shape[0] > PCA_dim and features.shape[1] > PCA_dim:
         # pca = PCA(n_components = PCA_dim)                                # PCA call change to GLMPCA
-        res = glmpca.glmpca(raw_features, PCA_dim, fam="nb", nb_theta=10)        #GLMPCA on raw counts, removed transposition
+        res = glmpca.glmpca(raw_features.T, PCA_dim, fam="nb", nb_theta=10)        #GLMPCA on raw counts
         # features = pca.fit_transform(features)
         features = res["factors"] # extract factors
     else:
         # REPLACE features WITH raw_features
         var = np.var(raw_features, axis=0)
         min_var = np.sort(var)[-1 * PCA_dim]
-        # features = features.T[var >= min_var].T
-        features = features[var >= min_var]
+        features = features.T[var >= min_var].T
         features = features[:, :PCA_dim]
     print('Shape after transformation:', features.shape)
 
