@@ -34,6 +34,7 @@ from scipy.stats import spearmanr
 ###################
 # GK = pd.read_csv('D:\\学习\\研究生学习\\论文\\bioinfomatics\\scGAC a graph attentional architecture for clustering\\github\\scGAC改进本地\\data\\Yan\\Kernel_matrix.tsv', sep='\t', header=None).values
 # 这是一个归一化函数，将输入的特征值转化为每行和为100000的比例数据，并应用对数变换，以让特征值更适合后续分析。
+# COMMENTED OUT - NORMALIZATION
 # def  normalization(features_):
     # features = features_.copy()
     # for i in range(len(features)):
@@ -42,12 +43,12 @@ from scipy.stats import spearmanr
     # return features
 
 # 这个函数与 `normalization` 类似，但是乘的常数为1000000，针对 NE 的特征归一化。
-# def  normalization_for_NE(features_):
-    # features = features_.copy()
-    # for i in range(len(features)):
-    #     features[i] = features[i] / sum(features[i]) * 1000000
-    # features = np.log2(features + 1)
-    # return features
+def  normalization_for_NE(features_):
+    features = features_.copy()
+    for i in range(len(features)):
+        features[i] = features[i] / sum(features[i]) * 1000000
+    features = np.log2(features + 1)
+    return features
 
 # 这个函数实现了 NE 算法的一部分，其中 w 是权重矩阵，N 是网络的大小，eps 是为了防止除以0添加的小量。
 def NE_dn(w, N, eps):
@@ -134,7 +135,7 @@ def getGraph(dataset_str, features, L, K, method):# 定义函数getGraph，它�
         if os.path.exists(NE_path):
             NE_matrix = pd.read_csv(NE_path).values
         else:
-            # Remove normaliation
+            # COMMENTED OUT - NORMALIZATION
             # features = normalization_for_NE(features)
             features = features
             in_matrix = np.corrcoef(features)
@@ -225,8 +226,9 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     genes = data.index.values
     raw_features = data.values.T # storing raw counts
 
+    ## COMMENTED OUT - NORMALIZATION
     # Preprocess features & graph construction normalization 
-    # features = normalization(raw_features.copy())
+    # features = normalization(raw_features.copy()) 
 
     # Without normalization
     features = raw_features.copy()
@@ -252,13 +254,15 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
         # features = pca.fit_transform(features)
         features = res["factors"] # extract factors
     else:
-        var = np.var(features, axis=0)
+        # REPLACE features WITH raw_features
+        var = np.var(raw_features, axis=0)
         min_var = np.sort(var)[-1 * PCA_dim]
         features = features.T[var >= min_var].T
         features = features[:, :PCA_dim]
     print('Shape after transformation:', features.shape)
-    
-    features = (features - np.mean(features)) / (np.std(features))
+
+    ## COMMENTED OUT - NORMALIZATION
+    # features = (features - np.mean(features)) / (np.std(features))
   
     return adj, features, cells, genes, result, K
 
