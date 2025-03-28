@@ -224,7 +224,7 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     data = pd.read_csv(DATA_PATH, index_col=0, sep='\t')
     cells = data.columns.values
     genes = data.index.values
-    raw_features = data.values # storing raw counts, removed transposition
+    raw_features = data.values.T # storing raw counts
 
     ## COMMENTED OUT - NORMALIZATION
     # Preprocess features & graph construction normalization 
