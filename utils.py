@@ -224,7 +224,7 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     data = pd.read_csv(DATA_PATH, index_col=0, sep='\t')
     cells = data.columns.values
     genes = data.index.values
-    raw_features = data.values.T # storing raw counts
+    raw_features = data.values # storing raw counts, removed transposition
 
     ## COMMENTED OUT - NORMALIZATION
     # Preprocess features & graph construction normalization 
@@ -250,14 +250,15 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     # feature tranformation
     if features.shape[0] > PCA_dim and features.shape[1] > PCA_dim:
         # pca = PCA(n_components = PCA_dim)                                # PCA call change to GLMPCA
-        res = glmpca.glmpca(raw_features.T, PCA_dim, fam="nb", nb_theta=10)        #GLMPCA on raw counts
+        res = glmpca.glmpca(raw_features, PCA_dim, fam="nb", nb_theta=10)        #GLMPCA on raw counts, removed transposition
         # features = pca.fit_transform(features)
         features = res["factors"] # extract factors
     else:
         # REPLACE features WITH raw_features
         var = np.var(raw_features, axis=0)
         min_var = np.sort(var)[-1 * PCA_dim]
-        features = features.T[var >= min_var].T
+        # features = features.T[var >= min_var].T
+        features = features[var >= min_var]
         features = features[:, :PCA_dim]
     print('Shape after transformation:', features.shape)
 
