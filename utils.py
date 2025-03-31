@@ -34,13 +34,13 @@ from scipy.stats import spearmanr
 ###################
 # GK = pd.read_csv('D:\\学习\\研究生学习\\论文\\bioinfomatics\\scGAC a graph attentional architecture for clustering\\github\\scGAC改进本地\\data\\Yan\\Kernel_matrix.tsv', sep='\t', header=None).values
 # 这是一个归一化函数，将输入的特征值转化为每行和为100000的比例数据，并应用对数变换，以让特征值更适合后续分析。
-# COMMENTED OUT - NORMALIZATION
-# def  normalization(features_):
-    # features = features_.copy()
-    # for i in range(len(features)):
-    #     features[i] = features[i] / sum(features[i]) * 100000
-    # features = np.log2(features + 1)
-    # return features
+# KEEP NORMALIZATION FOR GRAH USAGE
+def  normalization(features_):
+    features = features_.copy()
+    for i in range(len(features)):
+        features[i] = features[i] / sum(features[i]) * 100000
+    features = np.log2(features + 1)
+    return features
 
 # 这个函数与 `normalization` 类似，但是乘的常数为1000000，针对 NE 的特征归一化。
 def  normalization_for_NE(features_):
@@ -128,14 +128,14 @@ def getGraph(dataset_str, features, L, K, method):# 定义函数getGraph，它�
     elif method == 'NE':# 如果方法是’NE’，那么首先计算特征的皮尔逊相关性矩阵
         co_matrix = np.corrcoef(features)
         # print(np.corrcoef(features))
-        #co_matrix = co_matrix/2
+        # co_matrix = co_matrix/2
 
         # 然后，检查是否已经计算过NE矩阵并保存在文件中。如果是，那么就直接读取。否则，对特征进行归一化，计算归一化特征的皮尔逊相关性矩阵，然后使用getNeMatrix函数计算NE矩阵，并将其保存到文件中。
         NE_path = 'result/NE_' + dataset_str + '.csv'
         if os.path.exists(NE_path):
             NE_matrix = pd.read_csv(NE_path).values
         else:
-            # COMMENTED OUT - NORMALIZATION
+            # KEEP NORMALIZATION FOR CORRELATIONS
             features = normalization_for_NE(features)
             # features = features
             in_matrix = np.corrcoef(features)
@@ -217,7 +217,8 @@ def getGraph(dataset_str, features, L, K, method):# 定义函数getGraph，它�
 Load scRNA-seq data set and perfrom preprocessing
 """
 # 这个函数用于加载和预处理 scRNA-seq 数据集，其中也包括通过 PCA 进行维度减少。
-def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None):
+def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None, glmpca_fam="nb", glmpca_theta=10, glmpca_penalty=1):
+    # Above line now controls glmpca function
     # Get data
     DATA_PATH = data_path
 
@@ -230,10 +231,15 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     # Preprocess features & graph construction normalization 
     # features = normalization(raw_features.copy()) 
 
+    norm_features_for_graph = raw_features.copy()
+    for i in range(len(norm_features_for_graph)):
+        norm_features_for_graph[i] = norm_feature_for_graph[i] / sum(norm_feature_for_graph[i]) * 100000
+    norm_feature_for_graph = np.log2(norm_feature_for_graph + 1)
+    
     # Without normalization
-    features = raw_features.copy()
+    # features = raw_features.copy()
 
-    # Construct graph
+    # Construct graph using normalized features for graph contstruction
     N = len(cells)
     avg_N = N // n_clusters
     K = avg_N // 10
@@ -245,23 +251,25 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
         method = 'NE'
     else:
         method = 'pearson'
-    adj, result= getGraph(dataset_str, features, L, K, method)
+    adj, result= getGraph(dataset_str, norm_features_for_graph, L, K, method) # features now norm_features_for_graph
 
-    # feature tranformation
-    if features.shape[0] > PCA_dim and features.shape[1] > PCA_dim:
+    # feature tranformation (modified for GLMPCA raw counts)
+    if features.shape[0] > PCA_dim and raw_features.shape[1] > PCA_dim:
         # pca = PCA(n_components = PCA_dim)                                # PCA call change to GLMPCA
-        res = glmpca.glmpca(raw_features.T, PCA_dim, fam="nb", nb_theta=10)        #GLMPCA on raw counts
+        res = glmpca.glmpca(raw_features.T, PCA_dim, fam=glmpca_fam, nb_theta=glmpca_theta, penalty=glmpca_penalty)        #GLMPCA on raw counts
         # features = pca.fit_transform(features)
         features = res["factors"] # extract factors
     else:
         # REPLACE features WITH raw_features
         var = np.var(raw_features, axis=0)
         min_var = np.sort(var)[-1 * PCA_dim]
-        features = features.T[var >= min_var].T
+        selected_geness = var >= min_var # modified for gene selection on small datasets
+        features = raw_features[:, selected_genes]
+        # features = features.T[var >= min_var].T
         features = features[:, :PCA_dim]
     print('Shape after transformation:', features.shape)
 
-    ## COMMENTED OUT - NORMALIZATION
+    ## COMMENTED OUT - POST-GLMPCA NORMALIZATION
     # features = (features - np.mean(features)) / (np.std(features))
   
     return adj, features, cells, genes, result, K
