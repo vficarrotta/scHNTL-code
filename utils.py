@@ -233,8 +233,8 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
 
     norm_features_for_graph = raw_features.copy()
     for i in range(len(norm_features_for_graph)):
-        norm_features_for_graph[i] = norm_feature_for_graph[i] / sum(norm_feature_for_graph[i]) * 100000
-    norm_feature_for_graph = np.log2(norm_feature_for_graph + 1)
+        norm_features_for_graph[i] = norm_features_for_graph[i] / sum(norm_features_for_graph[i]) * 100000
+    norm_features_for_graph = np.log2(norm_features_for_graph + 1)
     
     # Without normalization
     # features = raw_features.copy()
