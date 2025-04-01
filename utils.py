@@ -254,7 +254,7 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
     adj, result= getGraph(dataset_str, norm_features_for_graph, L, K, method) # features now norm_features_for_graph
 
     # feature tranformation (modified for GLMPCA raw counts)
-    if features.shape[0] > PCA_dim and raw_features.shape[1] > PCA_dim:
+    if raw_features.shape[0] > PCA_dim and raw_features.shape[1] > PCA_dim:
         # pca = PCA(n_components = PCA_dim)                                # PCA call change to GLMPCA
         res = glmpca.glmpca(raw_features.T, PCA_dim, fam=glmpca_fam, nb_theta=glmpca_theta, penalty=glmpca_penalty)        #GLMPCA on raw counts
         # features = pca.fit_transform(features)
