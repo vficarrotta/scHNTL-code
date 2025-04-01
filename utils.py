@@ -263,7 +263,7 @@ def load_data(data_path, dataset_str, PCA_dim, is_NE=True, n_clusters=20, K=None
         # REPLACE features WITH raw_features
         var = np.var(raw_features, axis=0)
         min_var = np.sort(var)[-1 * PCA_dim]
-        selected_geness = var >= min_var # modified for gene selection on small datasets
+        selected_genes = var >= min_var # modified for gene selection on small datasets
         features = raw_features[:, selected_genes]
         # features = features.T[var >= min_var].T
         features = features[:, :PCA_dim]
